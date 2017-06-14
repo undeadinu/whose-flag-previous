@@ -2,3 +2,4 @@ bower_components/
 functions/
 build/
 .DS_Store
+firebase-debug.log

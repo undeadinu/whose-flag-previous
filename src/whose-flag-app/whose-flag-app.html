@@ -54,9 +54,9 @@
         id="flag-image"
         preload fade src="data/BR.svg">
       </iron-image>
-      <paper-button id="optionA">Brazil</paper-button>
-      <paper-button id="optionB">Uruguay</paper-button>
-      <p>A message will go here, telling you if you got it right.</p>
+      <paper-button id="optionA" data-answer$="{{countryA}}" on-click="selectAnswer">{{countryA}}</paper-button>
+      <paper-button id="optionB" data-answer$="{{countryB}}" on-click="selectAnswer">{{countryB}}</paper-button>
+      <p>{{outputMessage}}</p>
       <p><p>
       <paper-button class="another" id="another">Another!</paper-button>
     </div>
@@ -71,7 +71,41 @@
       static get is() { return 'whose-flag-app'; }
       static get properties() {
         return {
-        };
+          outputMessage: {
+            type: String,
+            value: ""
+          },
+          userAnswer: {
+            type: String,
+            value: ""
+          },
+          countryA: {
+            type: String,
+            value: "Brazil"
+          },
+          countryB: {
+            type: String,
+            value: "Uruguay"
+          },
+          correctAnswer: {
+            type: String,
+            value: "Brazil"
+          }
+        }
+      }
+      selectAnswer(event) {
+        var clickedButton = event.target;
+        this.userAnswer = clickedButton.dataset.answer; 
+        
+        if (this.userAnswer == this.correctAnswer) 
+        {
+          this.outputMessage = this.userAnswer + " is correct!";
+        }
+        else
+        {
+          this.outputMessage = "Nope! The correct answer is " + this.correctAnswer + "!";
+        }
+        
       }
     }
 

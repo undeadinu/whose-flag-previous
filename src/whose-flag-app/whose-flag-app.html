@@ -64,7 +64,7 @@
       <paper-button id="optionB" data-answer$="{{countryB.name}}" on-click="selectAnswer">{{countryB.name}}</paper-button>
       <p>{{outputMessage}}</p>
       <p><p>
-      <paper-button class="another" id="another">Another!</paper-button>
+      <paper-button class="another" id="another" onClick="window.location.reload();">Another!</paper-button>
     </div>
   </template>
 
@@ -90,13 +90,16 @@
           correctAnswer: {
           },
           countryList: {
+          },
+          coin: {
+            type:Number,
+            value:0
           }
         }
       }
       selectAnswer(event) {
         var clickedButton = event.target;
         this.userAnswer = clickedButton.dataset.answer; 
-        
         if (this.userAnswer == this.correctAnswer.name) 
         {
           this.outputMessage = this.userAnswer + " is correct!";
@@ -105,16 +108,18 @@
         {
           this.outputMessage = "Nope! The correct answer is " + this.correctAnswer.name + "!";
         }
-        
       }
       handleresponse(thing) {
         this.countryList = thing.detail.response.countrycodes;
-        this.countryA = this.countryList[0];
-        this.countryB = this.countryList[1];
-        this.correctAnswer = this.countryA;
+        this.countryA = this.countryList[(Math.floor(Math.random() * 248))];
+        this.countryB = this.countryList[(Math.floor(Math.random() * 248))];
+        this.coin=(Math.floor((Math.random() * 2) + 1));
+        if (this.coin == 1) 
+          { this.correctAnswer = this.countryA; }
+        else
+          { this.correctAnswer = this.countryB; }
       }
     }
-
     window.customElements.define(WhoseFlagApp.is, WhoseFlagApp);
   </script>
 </dom-module>

@@ -2,6 +2,7 @@
 <link rel="import" href="/bower_components/app-layout/app-layout.html">
 <link rel="import" href="/bower_components/iron-image/iron-image.html">
 <link rel="import" href="/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/bower_components/iron-ajax/iron-ajax.html">
 
 <dom-module id="whose-flag-app">
   <template>
@@ -49,13 +50,18 @@
         <div main-title>Whose flag is this?</div>
       </app-toolbar>
     </app-header>
+    <iron-ajax
+            auto
+            url="data/countrycodes.json"
+            handle-as="json"
+            on-response="handleresponse"></iron-ajax>
     <div id="flag-image-container">
       <iron-image 
         id="flag-image"
-        preload fade src="data/BR.svg">
+        preload fade src="data/svg/{{correctAnswer.code}}.svg">
       </iron-image>
-      <paper-button id="optionA" data-answer$="{{countryA}}" on-click="selectAnswer">{{countryA}}</paper-button>
-      <paper-button id="optionB" data-answer$="{{countryB}}" on-click="selectAnswer">{{countryB}}</paper-button>
+      <paper-button id="optionA" data-answer$="{{countryA.name}}" on-click="selectAnswer">{{countryA.name}}</paper-button>
+      <paper-button id="optionB" data-answer$="{{countryB.name}}" on-click="selectAnswer">{{countryB.name}}</paper-button>
       <p>{{outputMessage}}</p>
       <p><p>
       <paper-button class="another" id="another">Another!</paper-button>
@@ -76,20 +82,14 @@
             value: ""
           },
           userAnswer: {
-            type: String,
-            value: ""
           },
           countryA: {
-            type: String,
-            value: "Brazil"
           },
           countryB: {
-            type: String,
-            value: "Uruguay"
           },
           correctAnswer: {
-            type: String,
-            value: "Brazil"
+          },
+          countryList: {
           }
         }
       }
@@ -97,15 +97,21 @@
         var clickedButton = event.target;
         this.userAnswer = clickedButton.dataset.answer; 
         
-        if (this.userAnswer == this.correctAnswer) 
+        if (this.userAnswer == this.correctAnswer.name) 
         {
           this.outputMessage = this.userAnswer + " is correct!";
         }
         else
         {
-          this.outputMessage = "Nope! The correct answer is " + this.correctAnswer + "!";
+          this.outputMessage = "Nope! The correct answer is " + this.correctAnswer.name + "!";
         }
         
+      }
+      handleresponse(thing) {
+        this.countryList = thing.detail.response.countrycodes;
+        this.countryA = this.countryList[0];
+        this.countryB = this.countryList[1];
+        this.correctAnswer = this.countryA;
       }
     }
 

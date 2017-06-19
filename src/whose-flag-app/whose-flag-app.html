@@ -7,10 +7,15 @@
 <dom-module id="whose-flag-app">
   <template>
     <style>
+      :host {
+        display: block;
+        font-family: Roboto, Noto, sans-serif;
+      }
       paper-button.another {
         background: #4285f4;
         color: #fff;
         width: 100%;
+        margin-top: 24px;
       }
       paper-button {
         background: #5e35b1;
@@ -20,11 +25,6 @@
       paper-button:hover {
         background: lime;
       }
-      
-      :host {
-        display: block;
-        font-family: Roboto, Noto, sans-serif;
-      }      
       app-toolbar {
         background-color: #4285f4;
         color: #fff;
@@ -32,39 +32,33 @@
       }
       iron-image {
         border: solid;
+        width: 100%;
+        --iron-image-width: 100%;
+      }
+      #flag-image-container {
+        width: 500px;
       }
     </style>
-    <custom-style>
-      <style is="custom-style">
-        #flag-image-container {
-          width: 500px;
-        }
-        #flag-image {
-          width: 100%;
-          --iron-image-width: 100%;
-        }
-        </style>
-    </custom-style>
+
     <app-header>
       <app-toolbar>
         <div main-title>Whose flag is this?</div>
       </app-toolbar>
     </app-header>
     <iron-ajax
-            auto
-            url="data/countrycodes.json"
-            handle-as="json"
-            on-response="handleresponse"></iron-ajax>
+        auto
+        url="data/countrycodes.json"
+        handle-as="json"
+        on-response="_handleResponse"></iron-ajax>
     <div id="flag-image-container">
-      <iron-image 
+      <iron-image
         id="flag-image"
         preload fade src="data/svg/{{correctAnswer.code}}.svg">
       </iron-image>
-      <paper-button id="optionA" data-answer$="{{countryA.name}}" on-click="selectAnswer">{{countryA.name}}</paper-button>
-      <paper-button id="optionB" data-answer$="{{countryB.name}}" on-click="selectAnswer">{{countryB.name}}</paper-button>
+      <paper-button id="optionA" data-answer$="{{countryA.name}}" on-click="_selectAnswer">{{countryA.name}}</paper-button>
+      <paper-button id="optionB" data-answer$="{{countryB.name}}" on-click="_selectAnswer">{{countryB.name}}</paper-button>
       <p>{{outputMessage}}</p>
-      <p><p>
-      <paper-button class="another" id="another" onClick="window.location.reload();">Another!</paper-button>
+      <paper-button class="another" id="another" on-click="_restart">Another!</paper-button>
     </div>
   </template>
 
@@ -81,43 +75,43 @@
             type: String,
             value: ""
           },
-          userAnswer: {
-          },
           countryA: {
+            type: String
           },
           countryB: {
+            type: String
           },
           correctAnswer: {
+            type: String
           },
           countryList: {
-          },
-          coin: {
-            type:Number,
-            value:0
+            type: Object
           }
         }
       }
-      selectAnswer(event) {
+      _selectAnswer(event) {
         var clickedButton = event.target;
-        this.userAnswer = clickedButton.dataset.answer; 
-        if (this.userAnswer == this.correctAnswer.name) 
-        {
-          this.outputMessage = this.userAnswer + " is correct!";
-        }
-        else
-        {
+        var userAnswer = clickedButton.dataset.answer;
+        if (userAnswer == this.correctAnswer.name) {
+          this.outputMessage = userAnswer + " is correct!";
+        } else {
           this.outputMessage = "Nope! The correct answer is " + this.correctAnswer.name + "!";
         }
       }
-      handleresponse(thing) {
+
+      _restart() {
+        window.location.reload();
+      }
+
+      _handleResponse(thing) {
         this.countryList = thing.detail.response.countrycodes;
-        this.countryA = this.countryList[(Math.floor(Math.random() * 248))];
-        this.countryB = this.countryList[(Math.floor(Math.random() * 248))];
-        this.coin=(Math.floor((Math.random() * 2) + 1));
-        if (this.coin == 1) 
-          { this.correctAnswer = this.countryA; }
-        else
-          { this.correctAnswer = this.countryB; }
+        this.countryA = this.countryList[this.__getRandomCountry()];
+        this.countryB = this.countryList[this.__getRandomCountry()];
+        var coin = (Math.floor((Math.random() * 2) + 1));
+        this.correctAnswer = coin == 1 ? this.countryA : this.countryB;
+      }
+      __getRandomCountry() {
+        return Math.floor(Math.random() * 248);
       }
     }
     window.customElements.define(WhoseFlagApp.is, WhoseFlagApp);

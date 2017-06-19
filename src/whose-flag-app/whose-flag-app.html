@@ -20,7 +20,7 @@
       paper-button {
         background: #5e35b1;
         color: #fff;
-        width: 47%;
+        flex-grow: 1;
       }
       paper-button:hover {
         background: lime;
@@ -36,8 +36,16 @@
         --iron-image-width: 100%;
       }
       #flag-image-container {
-        width: 500px;
+        max-width: 600px;
+        width: 100%;
+        margin: 0 auto;
       }
+      #answer-button-container {
+        display: flex; /* or inline-flex */
+        flex-flow: row wrap;
+        justify-content:space-around;
+      }
+    }
     </style>
 
     <app-header>
@@ -55,8 +63,10 @@
         id="flag-image"
         preload fade src="data/svg/{{correctAnswer.code}}.svg">
       </iron-image>
-      <paper-button id="optionA" data-answer$="{{countryA.name}}" on-click="_selectAnswer">{{countryA.name}}</paper-button>
-      <paper-button id="optionB" data-answer$="{{countryB.name}}" on-click="_selectAnswer">{{countryB.name}}</paper-button>
+      <div id="answer-button-container">
+        <paper-button id="optionA" data-answer$="{{countryA.name}}" on-click="_selectAnswer">{{countryA.name}}</paper-button>
+        <paper-button id="optionB" data-answer$="{{countryB.name}}" on-click="_selectAnswer">{{countryB.name}}</paper-button>
+      </div>  
       <p>{{outputMessage}}</p>
       <paper-button class="another" id="another" on-click="_restart">Another!</paper-button>
     </div>

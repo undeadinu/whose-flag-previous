@@ -57,11 +57,17 @@
         <div main-title>Whose flag is this?</div>
       </app-toolbar>
     </app-header>
+    <p>You're viewing the flags of {{regionSetting}}.</p>
     <iron-ajax
         auto
-        url="data/countrycodes.json"
+        url="data/regiondata.json"
         handle-as="json"
-        on-response="_handleResponse"></iron-ajax>
+        on-response="_parseRegionData"></iron-ajax>
+    <iron-ajax
+        auto
+        url="data/countrydata.json"
+        handle-as="json"
+        on-response="_parseCountryData"></iron-ajax>
     <div id="flag-image-container">
       <iron-image
         id="flag-image"
@@ -89,6 +95,9 @@
             type: String,
             value: ""
           },
+          flagFilenamePrefix: {
+            type: String
+          },
           countryA: {
             type: String
           },
@@ -100,6 +109,10 @@
           },
           countryList: {
             type: Object
+          },
+          regionSetting: {
+            type: String,
+            value: "Middle East"
           }
         }
       }
@@ -117,15 +130,44 @@
         window.location.reload();
       }
 
-      _handleResponse(thing) {
-        this.countryList = thing.detail.response.countrycodes;
-        this.countryA = this.countryList[this.__getRandomCountry()];
-        this.countryB = this.countryList[this.__getRandomCountry()];
+      _parseRegionData(thing) {
+        var regionList = thing.detail.response.regions;
+        this.countryList = this.__getCountryList(this.regionSetting, regionList);
+      }
+        
+      _parseCountryData(thing) {
+        var countryCodeA = "";
+        var countryCodeB = "";
+        while (countryCodeA == countryCodeB) {
+          countryCodeA = this.countryList[this.__getRandomCountry(this.countryList.length)];
+          countryCodeB = this.countryList[this.__getRandomCountry(this.countryList.length)];
+        }
+        this.countryA = this._fetchCountry(countryCodeA, thing.detail.response.countrydata);
+        this.countryB = this._fetchCountry(countryCodeB, thing.detail.response.countrydata);
         var coin = (Math.floor((Math.random() * 2) + 1));
         this.correctAnswer = coin == 1 ? this.countryA : this.countryB;
       }
-      __getRandomCountry() {
-        return Math.floor(Math.random() * 248);
+      
+      _fetchCountry(countryCode, countryData) {
+        var i;
+        for (i = 0; i < countryData.length; i++) { 
+          if (countryData[i].code == countryCode) {
+            return countryData[i];
+          }
+        }
+      }
+      
+      __getCountryList(regionSetting, regionList) {
+        var i;
+        for (i = 0; i < regionList.length; i++) { 
+          if (regionList[i].regionName == regionSetting) {
+            return regionList[i].countryList;
+          }
+        }
+      }
+      
+      __getRandomCountry(numCountries) {
+        return Math.floor(Math.random() * numCountries);
       }
     }
     window.customElements.define(WhoseFlagApp.is, WhoseFlagApp);

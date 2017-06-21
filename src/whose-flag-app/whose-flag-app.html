@@ -4,6 +4,8 @@
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/paper-styles/color.html">
+<link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
+
 
 <dom-module id="whose-flag-app">
   <template>
@@ -12,10 +14,26 @@
         display: block;
         font-family: Roboto, Noto, sans-serif;
       }
+      .drawer-list {
+        margin: 0 20px;
+        display: block;
+        padding: 0 16px;
+        text-decoration: none;
+        color: var(--app-secondary-color);
+        line-height: 40px;
+      }
+      .drawer-list.iron-selected {
+        color: black;
+        font-weight: bold;
+      }
       paper-button {
         color: white;
       }
       paper-button.another {
+        background: var(--paper-blue-500);
+        width: 100%;
+      }
+      paper-button.restart {
         background: var(--paper-blue-500);
         width: 100%;
       }
@@ -49,10 +67,22 @@
         flex-flow: row wrap;
         justify-content:space-around;
       }
+      
     }
     </style>
-
-    <app-header>
+<app-drawer-layout>
+  <app-drawer slot="drawer">
+  <iron-selector selected="{{regionSetting}}" attr-for-selected="name" class="drawer-list">
+    <div name="World" on-click="_loadRegion">World</div>
+    <div name="Asia" on-click="_loadRegion">Asia</div>
+    <div name="Middle East" on-click="_loadRegion">Middle East</div>
+    <div name="Americas" on-click="_loadRegion">Americas</div>
+    <div name="Oceania" on-click="_loadRegion">Oceania</div>
+    <div name="Europe" on-click="_loadRegion">Europe</div>
+  </iron-selector>
+  </app-drawer>
+  <app-header-layout>
+    <app-header slot="header">
       <app-toolbar>
         <div main-title>Whose flag is this?</div>
       </app-toolbar>
@@ -62,12 +92,7 @@
         auto
         url="data/regiondata.json"
         handle-as="json"
-        on-response="_parseRegionData"></iron-ajax>
-    <iron-ajax
-        auto
-        url="data/countrydata.json"
-        handle-as="json"
-        on-response="_parseCountryData"></iron-ajax>
+        on-response="_configureGame"></iron-ajax>
     <div id="flag-image-container">
       <iron-image
         id="flag-image"
@@ -78,8 +103,11 @@
         <paper-button class="answer" id="optionB" data-answer$="{{countryB.name}}" on-click="_selectAnswer">{{countryB.name}}</paper-button>
       </div>  
       <p>{{outputMessage}}</p>
-      <paper-button class="another" id="another" on-click="_restart">Another!</paper-button>
+      <paper-button class="restart" id="restart" on-click="_restart">Restart!</paper-button>
+      <paper-button class="another" id="another" on-click="_another">Another!</paper-button>
     </div>
+      </app-header-layout>
+    </app-drawer-layout>
   </template>
 
   <script>
@@ -95,9 +123,6 @@
             type: String,
             value: ""
           },
-          flagFilenamePrefix: {
-            type: String
-          },
           countryA: {
             type: String
           },
@@ -107,12 +132,18 @@
           correctAnswer: {
             type: String
           },
-          countryList: {
+          countryCodeList: {
+            type: Array
+          },
+          countryObjectList: {
+            type: Object
+          },
+          regionList: {
             type: Object
           },
           regionSetting: {
             type: String,
-            value: "Middle East"
+            value: "World"
           }
         }
       }
@@ -129,41 +160,51 @@
       _restart() {
         window.location.reload();
       }
-
-      _parseRegionData(thing) {
-        var regionList = thing.detail.response.regions;
-        this.countryList = this.__getCountryList(this.regionSetting, regionList);
-      }
+      
+      _another() {
+        window.location.reload();
         
-      _parseCountryData(thing) {
-        var countryCodeA = "";
-        var countryCodeB = "";
-        while (countryCodeA == countryCodeB) {
-          countryCodeA = this.countryList[this.__getRandomCountry(this.countryList.length)];
-          countryCodeB = this.countryList[this.__getRandomCountry(this.countryList.length)];
+      }
+      
+      _configureGame(thing) {
+        this.regionList = thing.detail.response.regions;
+        var i;
+        for (i = 0; i < this.regionList.length; i++) { 
+          if (this.regionList[i].regionName == this.regionSetting) {
+            this.countryCodeList = this.regionList[i].countryList;
+          }
         }
-        this.countryA = this._fetchCountry(countryCodeA, thing.detail.response.countrydata);
-        this.countryB = this._fetchCountry(countryCodeB, thing.detail.response.countrydata);
+        this._buildCountryObjectList();
+      }
+      
+      _buildCountryObjectList(){
+        {
+        // xhr is only local to this function because
+        // i don't think you want it anywhere else
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function() {
+        if (xhr.readyState == XMLHttpRequest.DONE) {
+          var response = JSON.parse(xhr.responseText);
+          this.countryObjectList = response.countrydata;
+          var key="AF";
+          console.log(this.countryObjectList[key]);
+          // do something with this  object.
+             }
+         }
+         xhr.open('GET', '/data/countrydata.json', true /* true means async */);
+         xhr.send(null);
+         //this._getQuestion();
+        }
+      }
+      _getQuestion(jsonString) {
+        this.countryA = "";
+        this.countryB = "";
+        while( countryA == countryB) {
+          this.countryA = this.countryObjectList[this.__getRandomCountry(this.countryObjectList.length)];
+          this.countryB = this.countryObjectList[this.__getRandomCountry(this.countryObjectList.length)];
+        }
         var coin = (Math.floor((Math.random() * 2) + 1));
         this.correctAnswer = coin == 1 ? this.countryA : this.countryB;
-      }
-      
-      _fetchCountry(countryCode, countryData) {
-        var i;
-        for (i = 0; i < countryData.length; i++) { 
-          if (countryData[i].code == countryCode) {
-            return countryData[i];
-          }
-        }
-      }
-      
-      __getCountryList(regionSetting, regionList) {
-        var i;
-        for (i = 0; i < regionList.length; i++) { 
-          if (regionList[i].regionName == regionSetting) {
-            return regionList[i].countryList;
-          }
-        }
       }
       
       __getRandomCountry(numCountries) {

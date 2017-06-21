@@ -19,7 +19,7 @@
         display: block;
         padding: 0 16px;
         text-decoration: none;
-        color: var(--app-secondary-color);
+        color: black;
         line-height: 40px;
       }
       .drawer-list.iron-selected {
@@ -58,7 +58,7 @@
         --iron-image-width: 100%;
       }
       #flag-image-container {
-        max-width: 600px;
+        max-width: 400px;
         width: 100%;
         margin: 0 auto;
       }
@@ -73,12 +73,12 @@
 <app-drawer-layout>
   <app-drawer slot="drawer">
   <iron-selector selected="{{regionSetting}}" attr-for-selected="name" class="drawer-list">
-    <div name="World" on-click="_loadRegion">World</div>
-    <div name="Asia" on-click="_loadRegion">Asia</div>
-    <div name="Middle East" on-click="_loadRegion">Middle East</div>
-    <div name="Americas" on-click="_loadRegion">Americas</div>
-    <div name="Oceania" on-click="_loadRegion">Oceania</div>
-    <div name="Europe" on-click="_loadRegion">Europe</div>
+    <div name="World" data-region="World" on-click="_setRegion">World</div>
+    <div name="Asia" data-region="Asia" on-click="_setRegion">Asia</div>
+    <div name="Middle East" data-region="Middle East" on-click="_setRegion">Middle East</div>
+    <div name="Americas" data-region="Americas" on-click="_setRegion">Americas</div>
+    <div name="Oceania" name="Europe" data-region="Oceania" on-click="_setRegion">Oceania</div>
+    <div name="Europe" data-region="Europe" on-click="_setRegion">Europe</div>
   </iron-selector>
   </app-drawer>
   <app-header-layout>
@@ -87,23 +87,22 @@
         <div main-title>Whose flag is this?</div>
       </app-toolbar>
     </app-header>
-    <p>You're viewing the flags of {{regionSetting}}.</p>
     <iron-ajax
         auto
         url="data/regiondata.json"
         handle-as="json"
         on-response="_configureGame"></iron-ajax>
     <div id="flag-image-container">
+      <p>{{regionSetting}}</p>
       <iron-image
         id="flag-image"
-        preload fade src="data/svg/{{correctAnswer.code}}.svg">
+        preload fade src="data/svg/{{correctAnswerCode}}.svg">
       </iron-image>
       <div id="answer-button-container">
-        <paper-button class="answer" id="optionA" data-answer$="{{countryA.name}}" on-click="_selectAnswer">{{countryA.name}}</paper-button>
-        <paper-button class="answer" id="optionB" data-answer$="{{countryB.name}}" on-click="_selectAnswer">{{countryB.name}}</paper-button>
+        <paper-button class="answer" id="optionA" data-answer$="{{countryAname}}" on-click="_selectAnswer">{{countryAname}}</paper-button>
+        <paper-button class="answer" id="optionB" data-answer$="{{countryBname}}" on-click="_selectAnswer">{{countryBname}}</paper-button>
       </div>  
       <p>{{outputMessage}}</p>
-      <paper-button class="restart" id="restart" on-click="_restart">Restart!</paper-button>
       <paper-button class="another" id="another" on-click="_another">Another!</paper-button>
     </div>
       </app-header-layout>
@@ -123,13 +122,22 @@
             type: String,
             value: ""
           },
-          countryA: {
+          countryAcode: {
             type: String
           },
-          countryB: {
+          countryAname: {
             type: String
           },
-          correctAnswer: {
+          countryBcode: {
+            type: String
+          },
+          countryBname: {
+            type: String
+          },
+          correctAnswerCode: {
+            type: String
+          },
+          correctAnswerName: {
             type: String
           },
           countryCodeList: {
@@ -150,10 +158,10 @@
       _selectAnswer(event) {
         var clickedButton = event.target;
         var userAnswer = clickedButton.dataset.answer;
-        if (userAnswer == this.correctAnswer.name) {
+        if (userAnswer == this.correctAnswerName) {
           this.outputMessage = userAnswer + " is correct!";
         } else {
-          this.outputMessage = "Nope! The correct answer is " + this.correctAnswer.name + "!";
+          this.outputMessage = "Nope! The correct answer is " + this.correctAnswerName + "!";
         }
       }
 
@@ -162,53 +170,62 @@
       }
       
       _another() {
-        window.location.reload();
-        
+        this._getQuestion();
+        this.outputMessage = "";
       }
       
       _configureGame(thing) {
         this.regionList = thing.detail.response.regions;
-        var i;
+        this._loadRegionData("World");
+        this._loadCountryData();
+      }
+      
+      _loadRegionData(newRegion){
+        this.regionSetting = newRegion;
+        var i=0;
         for (i = 0; i < this.regionList.length; i++) { 
           if (this.regionList[i].regionName == this.regionSetting) {
             this.countryCodeList = this.regionList[i].countryList;
           }
         }
-        this._buildCountryObjectList();
       }
       
-      _buildCountryObjectList(){
-        {
-        // xhr is only local to this function because
-        // i don't think you want it anywhere else
+      _loadCountryData(){
         var xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function() {
-        if (xhr.readyState == XMLHttpRequest.DONE) {
-          var response = JSON.parse(xhr.responseText);
-          this.countryObjectList = response.countrydata;
-          var key="AF";
-          console.log(this.countryObjectList[key]);
-          // do something with this  object.
-             }
-         }
-         xhr.open('GET', '/data/countrydata.json', true /* true means async */);
-         xhr.send(null);
-         //this._getQuestion();
-        }
+          if (xhr.readyState == XMLHttpRequest.DONE) {
+            var response = JSON.parse(xhr.responseText);
+            this.countryObjectList = response.countrydata;
+            this._getQuestion();
+          }
+        }.bind(this)
+        xhr.open('GET', '/data/countrydata.json', true /* true means async */);
+        xhr.send(null);
       }
-      _getQuestion(jsonString) {
-        this.countryA = "";
-        this.countryB = "";
-        while( countryA == countryB) {
-          this.countryA = this.countryObjectList[this.__getRandomCountry(this.countryObjectList.length)];
-          this.countryB = this.countryObjectList[this.__getRandomCountry(this.countryObjectList.length)];
+      
+      _getQuestion(){
+        this.countryAcode = "";
+        this.countryBcode = "";
+        this.countryAname = "";
+        this.countryBname = "";
+        while( this.countryAcode === this.countryBcode) {
+          this.countryAcode = this.countryCodeList[this.__getRandomCountry(this.countryCodeList.length)];
+          this.countryBcode = this.countryCodeList[this.__getRandomCountry(this.countryCodeList.length)];
+          this.countryAname = this.countryObjectList[this.countryAcode];
+          this.countryBname = this.countryObjectList[this.countryBcode];
         }
         var coin = (Math.floor((Math.random() * 2) + 1));
-        this.correctAnswer = coin == 1 ? this.countryA : this.countryB;
+        this.correctAnswerCode = coin == 1 ? this.countryAcode : this.countryBcode;
+        this.correctAnswerName = this.countryObjectList[this.correctAnswerCode];
       }
       
       __getRandomCountry(numCountries) {
         return Math.floor(Math.random() * numCountries);
+      }
+      
+      _setRegion(event){
+        this._loadRegionData(event.target.dataset.region);
+        this._getQuestion();
       }
     }
     window.customElements.define(WhoseFlagApp.is, WhoseFlagApp);

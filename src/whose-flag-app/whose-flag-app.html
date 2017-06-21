@@ -5,7 +5,7 @@
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/paper-styles/color.html">
 <link rel="import" href="../../bower_components/iron-selector/iron-selector.html">
-
+<link rel="import" href="../../bower_components/paper-item/paper-item.html">
 
 <dom-module id="whose-flag-app">
   <template>
@@ -73,13 +73,13 @@
 <app-drawer-layout>
   <app-drawer slot="drawer">
   <iron-selector selected="{{regionSetting}}" attr-for-selected="name" class="drawer-list">
-    <div name="World" data-region="World" on-click="_setRegion">World</div>
-    <div name="Asia" data-region="Asia" on-click="_setRegion">Asia</div>
-    <div name="Middle East" data-region="Middle East" on-click="_setRegion">Middle East</div>
-    <div name="Africa" data-region="Africa" on-click="_setRegion">Africa</div>
-    <div name="Americas" data-region="Americas" on-click="_setRegion">Americas</div>
-    <div name="Oceania" name="Europe" data-region="Oceania" on-click="_setRegion">Oceania</div>
-    <div name="Europe" data-region="Europe" on-click="_setRegion">Europe</div>
+    <paper-item name="World" data-region="World" on-click="_setRegion">World</paper-item>
+    <paper-item name="Asia" data-region="Asia" on-click="_setRegion">Asia</paper-item>
+    <paper-item name="Middle East" data-region="Middle East" on-click="_setRegion">Middle East</paper-item>
+    <paper-item name="Africa" data-region="Africa" on-click="_setRegion">Africa</paper-item>
+    <paper-item name="Americas" data-region="Americas" on-click="_setRegion">Americas</paper-item>
+    <paper-item name="Oceania" name="Europe" data-region="Oceania" on-click="_setRegion">Oceania</paper-item>
+    <paper-item name="Europe" data-region="Europe" on-click="_setRegion">Europe</paper-item>
   </iron-selector>
   </app-drawer>
   <app-header-layout>

@@ -58,7 +58,7 @@
         --iron-image-width: 100%;
       }
       #flag-image-container {
-        max-width: 400px;
+        max-width: 500px;
         width: 100%;
         margin: 0 auto;
       }
@@ -76,6 +76,7 @@
     <div name="World" data-region="World" on-click="_setRegion">World</div>
     <div name="Asia" data-region="Asia" on-click="_setRegion">Asia</div>
     <div name="Middle East" data-region="Middle East" on-click="_setRegion">Middle East</div>
+    <div name="Africa" data-region="Africa" on-click="_setRegion">Africa</div>
     <div name="Americas" data-region="Americas" on-click="_setRegion">Americas</div>
     <div name="Oceania" name="Europe" data-region="Oceania" on-click="_setRegion">Oceania</div>
     <div name="Europe" data-region="Europe" on-click="_setRegion">Europe</div>
@@ -87,24 +88,26 @@
         <div main-title>Whose flag is this?</div>
       </app-toolbar>
     </app-header>
+    <p>{{regionSetting}}</p>
     <iron-ajax
         auto
         url="data/regiondata.json"
         handle-as="json"
         on-response="_configureGame"></iron-ajax>
     <div id="flag-image-container">
-      <p>{{regionSetting}}</p>
       <iron-image
         id="flag-image"
         preload fade src="data/svg/{{correctAnswerCode}}.svg">
       </iron-image>
-      <div id="answer-button-container">
+    </div>
+    <div id="answer-button-container">
         <paper-button class="answer" id="optionA" data-answer$="{{countryAname}}" on-click="_selectAnswer">{{countryAname}}</paper-button>
         <paper-button class="answer" id="optionB" data-answer$="{{countryBname}}" on-click="_selectAnswer">{{countryBname}}</paper-button>
-      </div>  
-      <p>{{outputMessage}}</p>
-      <paper-button class="another" id="another" on-click="_another">Another!</paper-button>
-    </div>
+        <paper-button class="answer" id="optionC" data-answer$="{{countryCname}}" on-click="_selectAnswer">{{countryCname}}</paper-button>
+        <paper-button class="answer" id="optionD" data-answer$="{{countryDname}}" on-click="_selectAnswer">{{countryDname}}</paper-button>
+    </div>  
+    <p>{{outputMessage}}</p>
+    <paper-button class="another" id="another" on-click="_another">Another!</paper-button>
       </app-header-layout>
     </app-drawer-layout>
   </template>
@@ -132,6 +135,18 @@
             type: String
           },
           countryBname: {
+            type: String
+          },
+          countryCcode: {
+            type: String
+          },
+          countryCname: {
+            type: String
+          },
+          countryDcode: {
+            type: String
+          },
+          countryDname: {
             type: String
           },
           correctAnswerCode: {
@@ -206,16 +221,43 @@
       _getQuestion(){
         this.countryAcode = "";
         this.countryBcode = "";
+        this.countryCcode = "";
+        this.countryDcode = "";
         this.countryAname = "";
         this.countryBname = "";
-        while( this.countryAcode === this.countryBcode) {
+        this.countryCname = "";
+        this.countryDname = "";
+        while (
+          (this.countryAcode == ( this.countryBcode || this.countryCcode || this.countryDcode )) || 
+          (this.countryBcode == ( this.countryAcode || this.countryCcode || this.countryDcode )) ||
+          (this.countryCcode == ( this.countryAcode || this.countryBcode || this.countryDcode )) ||
+          (this.countryDcode == ( this.countryAcode || this.countryBcode || this.countryCcode ))
+        )
+        {
           this.countryAcode = this.countryCodeList[this.__getRandomCountry(this.countryCodeList.length)];
           this.countryBcode = this.countryCodeList[this.__getRandomCountry(this.countryCodeList.length)];
+          this.countryCcode = this.countryCodeList[this.__getRandomCountry(this.countryCodeList.length)];
+          this.countryDcode = this.countryCodeList[this.__getRandomCountry(this.countryCodeList.length)];
           this.countryAname = this.countryObjectList[this.countryAcode];
           this.countryBname = this.countryObjectList[this.countryBcode];
+          this.countryCname = this.countryObjectList[this.countryCcode];
+          this.countryDname = this.countryObjectList[this.countryDcode];
         }
-        var coin = (Math.floor((Math.random() * 2) + 1));
-        this.correctAnswerCode = coin == 1 ? this.countryAcode : this.countryBcode;
+        var die = (Math.floor((Math.random() * 4) + 1));
+        switch(die) {
+          case 1:
+            this.correctAnswerCode = this.countryAcode;
+            break;
+          case 2:
+            this.correctAnswerCode = this.countryBcode;
+            break;
+          case 3:
+            this.correctAnswerCode = this.countryCcode;
+            break;
+          case 4: 
+            this.correctAnswerCode = this.countryDcode;
+            break;
+        }
         this.correctAnswerName = this.countryObjectList[this.correctAnswerCode];
       }
       
@@ -224,6 +266,7 @@
       }
       
       _setRegion(event){
+        this.outputMessage = "";
         this._loadRegionData(event.target.dataset.region);
         this._getQuestion();
       }

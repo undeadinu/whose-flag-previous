@@ -121,11 +121,15 @@
         this.countryList = thing.detail.response.countrycodes;
         this.countryA = this.countryList[this.__getRandomCountry()];
         this.countryB = this.countryList[this.__getRandomCountry()];
+        while (this.countryA.code == this.countryB.code){
+          this.countryA = this.countryList[this.__getRandomCountry()];
+          this.countryB = this.countryList[this.__getRandomCountry()];
+        }
         var coin = (Math.floor((Math.random() * 2) + 1));
         this.correctAnswer = coin == 1 ? this.countryA : this.countryB;
       }
       __getRandomCountry() {
-        return Math.floor(Math.random() * 248);
+        return Math.floor(Math.random() * (this.countryList.length));
       }
     }
     window.customElements.define(WhoseFlagApp.is, WhoseFlagApp);

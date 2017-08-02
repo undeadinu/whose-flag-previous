@@ -1,70 +1,78 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
-<link rel="import" href="/bower_components/app-layout/app-layout.html">
-<link rel="import" href="/bower_components/iron-image/iron-image.html">
-<link rel="import" href="/bower_components/paper-button/paper-button.html">
-<link rel="import" href="/bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/app-layout/app-layout.html">
+<link rel="import" href="../../bower_components/iron-image/iron-image.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../../bower_components/paper-styles/color.html">
 
 <dom-module id="whose-flag-app">
   <template>
     <style>
-      paper-button.another {
-        background: #4285f4;
-        color: #fff;
-        width: 100%;
-      }
-      paper-button {
-        background: #5e35b1;
-        color: #fff;
-        width: 47%;
-      }
-      paper-button:hover {
-        background: lime;
-      }
-      
       :host {
         display: block;
         font-family: Roboto, Noto, sans-serif;
-      }      
+      }
+      paper-button {
+        color: white;
+      }
+      paper-button.another {
+        background: var(--paper-blue-500);
+        width: 100%;
+      }
+      paper-button.another:hover {
+        background: var(--paper-light-blue-500);
+      }
+      paper-button.answer {
+        background: var(--paper-purple-500);
+        flex-grow: 1;
+      }
+      paper-button.answer:hover {
+        background: var(--paper-pink-500);
+      }
       app-toolbar {
-        background-color: #4285f4;
-        color: #fff;
+        background-color: var(--paper-blue-500);
+        color: white;
         margin: 20px 0;
       }
       iron-image {
         border: solid;
+        width: 100%;
+        --iron-image-width: 100%;
       }
+      #flag-image-container {
+        max-width: 600px;
+        width: 100%;
+        margin: 0 auto;
+      }
+      #answer-button-container {
+        display: flex; /* or inline-flex */
+        flex-flow: row wrap;
+        justify-content:space-around;
+      }
+    }
     </style>
-    <custom-style>
-      <style is="custom-style">
-        #flag-image-container {
-          width: 500px;
-        }
-        #flag-image {
-          width: 100%;
-          --iron-image-width: 100%;
-        }
-        </style>
-    </custom-style>
+
     <app-header>
       <app-toolbar>
         <div main-title>Whose flag is this?</div>
       </app-toolbar>
     </app-header>
     <iron-ajax
-            auto
-            url="data/countrycodes.json"
-            handle-as="json"
-            on-response="handleresponse"></iron-ajax>
+        auto
+        url="data/countrycodes.json"
+        handle-as="json"
+        on-response="_handleResponse"></iron-ajax>
     <div id="flag-image-container">
-      <iron-image 
+      <iron-image
         id="flag-image"
         preload fade src="data/svg/{{correctAnswer.code}}.svg">
       </iron-image>
-      <paper-button id="optionA" data-answer$="{{countryA.name}}" on-click="selectAnswer">{{countryA.name}}</paper-button>
-      <paper-button id="optionB" data-answer$="{{countryB.name}}" on-click="selectAnswer">{{countryB.name}}</paper-button>
+      <div id="answer-button-container">
+        <paper-button class="answer" id="optionA" data-answer$="{{countryA.name}}" on-click="_selectAnswer">{{countryA.name}}</paper-button>
+        <paper-button class="answer" id="optionB" data-answer$="{{countryB.name}}" on-click="_selectAnswer">{{countryB.name}}</paper-button>
+      </div>  
       <p>{{outputMessage}}</p>
-      <p><p>
-      <paper-button class="another" id="another">Another!</paper-button>
+      <paper-button class="another" id="another" on-click="_restart">Another!</paper-button>
     </div>
   </template>
 
@@ -81,40 +89,41 @@
             type: String,
             value: ""
           },
-          userAnswer: {
-          },
           countryA: {
+            type: String
           },
           countryB: {
+            type: String
           },
           correctAnswer: {
+            type: String
           },
           countryList: {
+            type: Object
           }
         }
       }
-      selectAnswer(event) {
+      _selectAnswer(event) {
         var clickedButton = event.target;
-        this.userAnswer = clickedButton.dataset.answer; 
-        
-        if (this.userAnswer == this.correctAnswer.name) 
-        {
-          this.outputMessage = this.userAnswer + " is correct!";
-        }
-        else
-        {
+        var userAnswer = clickedButton.dataset.answer;
+        if (userAnswer == this.correctAnswer.name) {
+          this.outputMessage = userAnswer + " is correct!";
+        } else {
           this.outputMessage = "Nope! The correct answer is " + this.correctAnswer.name + "!";
         }
-        
       }
-      handleresponse(thing) {
+
+      _restart() {
+        window.location.reload();
+      }
+
+      _handleResponse(thing) {
         this.countryList = thing.detail.response.countrycodes;
         this.countryA = this.countryList[0];
         this.countryB = this.countryList[1];
         this.correctAnswer = this.countryA;
       }
     }
-
     window.customElements.define(WhoseFlagApp.is, WhoseFlagApp);
   </script>
 </dom-module>

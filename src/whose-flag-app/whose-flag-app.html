@@ -2,7 +2,6 @@
 <link rel="import" href="../../bower_components/app-layout/app-layout.html">
 <link rel="import" href="../../bower_components/iron-image/iron-image.html">
 <link rel="import" href="../../bower_components/paper-button/paper-button.html">
-<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
 <link rel="import" href="../../bower_components/paper-styles/color.html">
 
 <dom-module id="whose-flag-app">
@@ -57,19 +56,14 @@
         <div main-title>Whose flag is this?</div>
       </app-toolbar>
     </app-header>
-    <iron-ajax
-        auto
-        url="data/countrycodes.json"
-        handle-as="json"
-        on-response="_handleResponse"></iron-ajax>
     <div id="flag-image-container">
       <iron-image
         id="flag-image"
-        preload fade src="data/svg/{{correctAnswer.code}}.svg">
+        preload fade src="data/svg/BR.svg">
       </iron-image>
       <div id="answer-button-container">
-        <paper-button class="answer" id="optionA" data-answer$="{{countryA.name}}" on-click="_selectAnswer">{{countryA.name}}</paper-button>
-        <paper-button class="answer" id="optionB" data-answer$="{{countryB.name}}" on-click="_selectAnswer">{{countryB.name}}</paper-button>
+        <paper-button class="answer" id="optionA" data-answer$="{{countryA}}" on-click="_selectAnswer">{{countryA}}</paper-button>
+        <paper-button class="answer" id="optionB" data-answer$="{{countryB}}" on-click="_selectAnswer">{{countryB}}</paper-button>
       </div>  
       <p>{{outputMessage}}</p>
       <paper-button class="another" id="another" on-click="_restart">Another!</paper-button>
@@ -90,38 +84,30 @@
             value: ""
           },
           countryA: {
-            type: String
+            type: String,
+            value: "Brazil"
           },
           countryB: {
-            type: String
+            type: String,
+            value: "Uruguay"
           },
           correctAnswer: {
-            type: String
-          },
-          countryList: {
-            type: Object
+            type: String,
+            value: "Brazil"
           }
         }
       }
       _selectAnswer(event) {
         var clickedButton = event.target;
         var userAnswer = clickedButton.dataset.answer;
-        if (userAnswer == this.correctAnswer.name) {
+        if (userAnswer == this.correctAnswer) {
           this.outputMessage = userAnswer + " is correct!";
         } else {
-          this.outputMessage = "Nope! The correct answer is " + this.correctAnswer.name + "!";
+          this.outputMessage = "Nope! The correct answer is " + this.correctAnswer + "!";
         }
       }
-
       _restart() {
         window.location.reload();
-      }
-
-      _handleResponse(thing) {
-        this.countryList = thing.detail.response.countrycodes;
-        this.countryA = this.countryList[0];
-        this.countryB = this.countryList[1];
-        this.correctAnswer = this.countryA;
       }
     }
     window.customElements.define(WhoseFlagApp.is, WhoseFlagApp);
